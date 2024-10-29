@@ -1,10 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import rateLimit from "../../middleware/rateLimiter";
-import {
-  DynamoDBClient,
-  PutItemCommand,
-  GetItemCommand,
-} from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { randomUUID } from "crypto";
 import dotenv from "dotenv";
 
@@ -51,26 +47,10 @@ async function postUserEmailAddress(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).json({ error: "Email and name are required" });
   }
 
+  const userId = randomUUID();
+
   try {
-    // Step 1: Check if email already exists in DynamoDB
-    const getItemParams = {
-      TableName: process.env.DYNAMODB_TABLE_NAME,
-      Key: {
-        email: { S: email },
-      },
-    };
-
-    const existingItem = await dynamoDbClient.send(
-      new GetItemCommand(getItemParams)
-    );
-    if (existingItem.Item) {
-      // Email already exists
-      return res.status(409).json({ error: "Email already exists" });
-    }
-
-    // Step 2: If email does not exist, proceed to add new item
-    const userId = randomUUID();
-    const putItemParams = {
+    const params = {
       TableName: process.env.DYNAMODB_TABLE_NAME,
       Item: {
         id: { S: userId },
@@ -79,7 +59,7 @@ async function postUserEmailAddress(req: NextApiRequest, res: NextApiResponse) {
       },
     };
 
-    await dynamoDbClient.send(new PutItemCommand(putItemParams));
+    await dynamoDbClient.send(new PutItemCommand(params));
     res.status(201).json({ id: userId, email, name });
   } catch (error) {
     console.error("Error creating item in DynamoDB:", error);
