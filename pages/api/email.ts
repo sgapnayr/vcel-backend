@@ -9,7 +9,7 @@ dotenv.config();
 const rateLimiter = rateLimit(100, 60 * 60 * 1000);
 
 const dynamoDbClient = new DynamoDBClient({
-  region: process.env.AWS_REGION,
+  region: String(process.env.AWS_REGION),
 });
 
 export default async function handler(
@@ -38,7 +38,7 @@ async function postUserEmailAddress(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     const params = {
-      TableName: process.env.DYNAMODB_TABLE_NAME,
+      TableName: String(process.env.DYNAMODB_TABLE_NAME),
       Item: {
         id: { S: userId },
         email: { S: email },
