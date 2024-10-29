@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model EmailAddress {
+  id        String    @id @map("_id")
+  email     String?    
+  name      String?
+  createdAt DateTime?  @default(now())
+}
