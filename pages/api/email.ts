@@ -3,6 +3,7 @@ import rateLimit from "../../middleware/rateLimiter";
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { randomUUID } from "crypto";
 import dotenv from "dotenv";
+import Cors from "cors";
 
 dotenv.config();
 
@@ -16,16 +17,35 @@ const dynamoDbClient = new DynamoDBClient({
   },
 });
 
+// Initialize the CORS middleware
+const cors = Cors({
+  methods: ["POST", "GET", "HEAD"],
+  origin: "*", // Adjust the origin as needed, e.g., "https://your-frontend-domain.com"
+});
+
+// Helper method to run middleware in Next.js
+function runMiddleware(req: NextApiRequest, res: NextApiResponse, fn: any) {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result: any) => {
+      if (result instanceof Error) {
+        return reject(result);
+      }
+      return resolve(result);
+    });
+  });
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  await runMiddleware(req, res, cors); // Run the CORS middleware
   await rateLimiter(req, res, async () => {
     switch (req.method) {
       case "POST":
         return await postUserEmailAddress(req, res);
       default:
-        res.status(405).end();
+        res.status(405).end(); // Method Not Allowed
         break;
     }
   });
