@@ -19,6 +19,7 @@
     "react-dom": "19.0.0-rc-69d4b800-20241021"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/dotenv": "^8.2.3",
     "@types/node": "^20",
     "@types/react": "^18",

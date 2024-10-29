@@ -3,7 +3,6 @@ import rateLimit from "../../middleware/rateLimiter";
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { randomUUID } from "crypto";
 import dotenv from "dotenv";
-import Cors from "cors";
 
 dotenv.config();
 
@@ -17,35 +16,25 @@ const dynamoDbClient = new DynamoDBClient({
   },
 });
 
-// Initialize the CORS middleware
-const cors = Cors({
-  methods: ["POST", "GET", "HEAD"],
-  origin: "*", // Adjust the origin as needed, e.g., "https://your-frontend-domain.com"
-});
-
-// Helper method to run middleware in Next.js
-function runMiddleware(req: NextApiRequest, res: NextApiResponse, fn: any) {
-  return new Promise((resolve, reject) => {
-    fn(req, res, (result: any) => {
-      if (result instanceof Error) {
-        return reject(result);
-      }
-      return resolve(result);
-    });
-  });
-}
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  await runMiddleware(req, res, cors); // Run the CORS middleware
+  res.setHeader("Access-Control-Allow-Origin", "https://www.vcel.dating");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    res.status(200).end();
+    return;
+  }
+
   await rateLimiter(req, res, async () => {
     switch (req.method) {
       case "POST":
         return await postUserEmailAddress(req, res);
       default:
-        res.status(405).end(); // Method Not Allowed
+        res.status(405).end();
         break;
     }
   });
