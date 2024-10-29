@@ -9,14 +9,18 @@ dotenv.config();
 const rateLimiter = rateLimit(100, 60 * 60 * 1000);
 
 const dynamoDbClient = new DynamoDBClient({
-  region: String(process.env.AWS_REGION),
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
+  },
 });
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  rateLimiter(req, res, async () => {
+  await rateLimiter(req, res, async () => {
     switch (req.method) {
       case "POST":
         return await postUserEmailAddress(req, res);
@@ -38,7 +42,7 @@ async function postUserEmailAddress(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     const params = {
-      TableName: String(process.env.DYNAMODB_TABLE_NAME),
+      TableName: process.env.DYNAMODB_TABLE_NAME,
       Item: {
         id: { S: userId },
         email: { S: email },
